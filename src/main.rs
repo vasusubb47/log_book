@@ -1,12 +1,19 @@
 use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpServer};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use colored::Colorize;
 use dotenv::dotenv;
 use std::env::{self, var};
 use std::io;
 
+use crate::controller::application::application_config;
+use crate::utility::application::get_application_key_from_headder;
+
 mod app_data;
+mod controller;
 mod db;
+mod model;
+mod utility;
 
 #[get("/")]
 async fn index() -> web::Json<String> {
@@ -37,9 +44,16 @@ async fn main() -> io::Result<()> {
     };
 
     HttpServer::new(move || {
+        let basic_middleware = HttpAuthentication::basic(get_application_key_from_headder);
+
         App::new()
             .app_data(web::Data::new(data.clone()))
-            .service(web::scope("/api").service(index))
+            // .service(web::scope("/api").service(index))
+            .service(
+                web::scope("/api")
+                    .wrap(basic_middleware)
+                    .configure(application_config),
+            )
             .wrap(Logger::default())
     })
     .bind((ip, port))?
