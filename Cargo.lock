@@ -1350,6 +1350,7 @@ dependencies = [
  "hmac",
  "hyper",
  "jsonwebtoken",
+ "rand",
  "serde",
  "serde_json",
  "sha2",
